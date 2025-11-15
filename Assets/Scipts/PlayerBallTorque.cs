@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerBallTorque : MonoBehaviour
 {
-    public float torqueAmount = 5f;  // Strength of spin
+    public float torqueAmount = 5f;
     Rigidbody rb;
 
     void Awake()
@@ -14,14 +14,12 @@ public class PlayerBallTorque : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Get input
-        float h = Input.GetAxis("Horizontal");  // A/D or Left/Right
-        float v = Input.GetAxis("Vertical");    // W/S or Up/Down
+        //input
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
 
-        // Calculate torque vector
         Vector3 torque = new Vector3(v, 0f, -h) * torqueAmount;
 
-        // Apply torque to Rigidbody
         rb.AddTorque(torque, ForceMode.Force);
         rb.maxAngularVelocity = 20f;
 

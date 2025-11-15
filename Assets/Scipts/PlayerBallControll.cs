@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class PlayerBallControl : MonoBehaviour
 {
-    public float torqueAmount = 5f;        // strength of spin
-    public float jumpForce = 5f;           // impulse for jump (optional)
-    public float maxAngularVel = 20f;      // clamp spinning speed
+    bool gameFrozen = false;
+    public float torqueAmount = 5f;
+    public float jumpForce = 5f;
+    public float maxAngularVel = 20f;
     public GoalHazardHandler goalHandler;
+    public AudioClip hitClip;
+    public GameObject hitParticlePrefab;
+
 
     Rigidbody rb;
     bool canJump = true;
@@ -15,32 +19,28 @@ public class PlayerBallControl : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        rb.maxAngularVelocity = maxAngularVel; // prevent runaway spin
+        rb.maxAngularVelocity = maxAngularVel;
     }
 
     void FixedUpdate()
     {
-        // read input
+        if (gameFrozen) return;
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
 
-        // torque vector: rotate around X/Z axes for forward/backward & sideways roll
         Vector3 torque = new Vector3(v, 0f, -h) * torqueAmount;
 
-        // apply torque
         rb.AddTorque(torque, ForceMode.Force);
     }
 
     void Update()
     {
-        // jump
-        if (Input.GetKeyDown(KeyCode.Space) && canJump)
+        if (!gameFrozen && Input.GetKeyDown(KeyCode.Space) && canJump)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             canJump = false;
         }
 
-        // restart
         if (Input.GetKeyDown(KeyCode.R))
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(
@@ -51,15 +51,29 @@ public class PlayerBallControl : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
-        // reset jump when hitting ground
-        if (collision.gameObject.CompareTag("Ground") || collision.contacts.Length > 0)
+        if (collision.gameObject.CompareTag("Ground"))
         {
             canJump = true;
         }
 
-        // hazard
         if (collision.gameObject.CompareTag("Hazard"))
         {
+            // freeze physics
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            rb.isKinematic = true;
+
+            gameFrozen = true;
+
+            if (hitClip != null)
+                AudioSource.PlayClipAtPoint(hitClip, collision.contacts[0].point);
+
+            if (hitParticlePrefab != null)
+            {
+                ContactPoint contact = collision.contacts[0];
+                Instantiate(hitParticlePrefab, contact.point, Quaternion.LookRotation(contact.normal));
+            }
+
             goalHandler?.OnHazardHit();
         }
     }

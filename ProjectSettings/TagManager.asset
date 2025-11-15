@@ -8,6 +8,10 @@ TagManager:
   - Goal
   - Ground
   - Text
+  - FxTemporaire
+  - Obstacle
+  - Obstcales
+  - Wall
   layers:
   - Default
   - TransparentFX

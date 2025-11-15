@@ -22,7 +22,6 @@ public class GoalHazardHandler : MonoBehaviour
     {
         finished = true;
         messageText.text = "Goal reached!";
-        // optionally freeze the player by disabling its script
     }
 
     public void OnHazardHit()
